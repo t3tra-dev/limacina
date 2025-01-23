@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}401 Unauthorized{% endblock %}
+
+{% block content %}
+<div class="text-center my-5">
+  <h1>401 - 要求が認証されていません</h1>
+  <p class="lead">再びログインしてお試しください。</p>
+  <a href="{{ url_for('auth.login') }}" class="btn btn-primary me-2">ログイン</a>
+  <a href="/" class="btn btn-primary">トップページに戻る</a>
+</div>
+{% endblock %}

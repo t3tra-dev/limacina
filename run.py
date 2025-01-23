@@ -27,6 +27,14 @@ def create_app():
     with app.app_context():
         db.create_all()
 
+    @app.errorhandler(401)
+    def unauthorized(e):
+        return render_template("errors/401.html"), 401
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template("errors/403.html"), 403
+
     @app.errorhandler(404)
     def not_found(e):
         return render_template("errors/404.html"), 404
