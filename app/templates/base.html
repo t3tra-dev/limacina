@@ -34,6 +34,48 @@
         <div class="collapse navbar-collapse" id="navbarContent">
           <ul class="navbar-nav ms-auto">
             <li>
+              <form class="d-flex" method="GET" action="/search">
+                <div class="input-group">
+                  <!-- ドロップダウンで検索タイプ選択 -->
+                  <button
+                    class="btn btn-outline-secondary dropdown-toggle"
+                    type="button"
+                    id="searchDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    本文検索
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a class="dropdown-item" href="#" data-search-type="text"
+                        >本文検索</a
+                      >
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="#" data-search-type="tag"
+                        >タグ検索</a
+                      >
+                    </li>
+                  </ul>
+                  <!-- 隠しフィールドで検索タイプを送信 -->
+                  <input type="hidden" id="search-type" name="type" value="text" />
+                  <!-- 検索入力フィールド -->
+                  <input
+                    class="form-control"
+                    type="search"
+                    name="q"
+                    id="search-input"
+                    placeholder="検索..."
+                    aria-label="検索"
+                  />
+                  <button class="btn btn-outline-primary" type="submit">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </form>
+            </li>
+            <li>
               <a class="nav-link" href="/events"
                 >イベント一覧</a
               >
@@ -178,6 +220,18 @@
 
       const savedTheme = localStorage.getItem("theme") || "light";
       applyTheme(savedTheme);
+    </script>
+    <script>
+      document.querySelectorAll(".dropdown-item[data-search-type]").forEach((item) => {
+        item.addEventListener("click", (e) => {
+          e.preventDefault();
+          const searchType = e.target.dataset.searchType;
+          const dropdownButton = document.getElementById("searchDropdown");
+          const hiddenInput = document.getElementById("search-type");
+          dropdownButton.textContent = e.target.textContent;
+          hiddenInput.value = searchType;
+        });
+      });
     </script>
     <style>
       a:not(.btn) {

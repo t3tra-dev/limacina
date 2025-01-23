@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template
 
-from app.extensions import db, init_extensions
+from app.extensions import db, init_extensions, register_filters
 from app.routes import register_routes
 
 
@@ -22,6 +22,9 @@ def create_app():
 
     # ルートの登録
     register_routes(app)
+
+    # フィルターの登録
+    register_filters(app)
 
     # データベース初期化 (初回起動時)
     with app.app_context():

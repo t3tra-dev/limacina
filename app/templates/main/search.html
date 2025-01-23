@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}検索: {{ query }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>検索結果</h1>
+  <p class="text-muted">
+    {{ search_type == "text" and "本文検索" or "タグ検索" }} の結果: "{{ query }}"
+  </p>
+  <hr />
+
+  {% if results %}
+  <ul class="list-group">
+    {% for post in results %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <h5>{{ post.title }}</h5>
+        {% if post.description %}
+        <p class="text-muted">{{ post.description|truncate(50) }}</p>
+        {% endif %}
+        {% if post.tags %}
+        <div>
+          <small>タグ: </small>
+          {% for tag in post.tags|json_loads %}
+          <span class="badge bg-secondary">{{ tag }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <a
+        href="{{ url_for('post.detail', post_id=post.id) }}"
+        class="btn btn-sm btn-outline-primary"
+      >
+        <i class="bi bi-eye"></i> 詳細
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted">該当する結果は見つかりませんでした。</p>
+  {% endif %}
+</div>
+{% endblock %}

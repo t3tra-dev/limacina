@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -21,3 +23,12 @@ def init_extensions(app: Flask):
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+
+def register_filters(app: Flask):
+    @app.template_filter('json_loads')
+    def json_loads_filter(s):
+        try:
+            return json.loads(s) if s else []
+        except Exception:
+            return []
