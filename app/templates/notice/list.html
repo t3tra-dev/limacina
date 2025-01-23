@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}通知一覧{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>通知一覧</h1>
+
+  {% if notices %}
+  <ul class="list-group">
+    {% for noti in notices %}
+    <li
+      class="list-group-item d-flex justify-content-between align-items-center"
+    >
+      <div>
+        <small class="text-muted">
+          <!-- ローカライズ用 -->
+          <time class="js-utc-time" datetime="{{ noti.created_at.isoformat() }}"
+            >...</time
+          >
+        </small>
+        <div>
+          <!-- 表示分岐 -->
+          {% if noti.type == "circle_invite" %}
+          <!-- サークル招待 -->
+          {{ noti.message }}
+          <a
+            href="{{ url_for('circle.detail', circle_id=noti.circle_id) }}"
+            class="text-decoration-none"
+          >
+            (サークル: {{ noti.circle_name }})
+          </a>
+          {% elif noti.type == "comment_on_my_post" %}
+          <!-- 投稿へのコメント -->
+          {{ noti.message }}
+          <a
+            href="{{ url_for('post.detail', post_id=noti.post_id) }}#comment-{{ noti.comment_id }}"
+            class="text-decoration-none"
+          >
+            (投稿: {{ noti.post_title }})
+          </a>
+          {% elif noti.type == "reply_to_my_comment" %}
+          <!-- コメントへのリプライ -->
+          {{ noti.message }}
+          <a
+            href="{{ url_for('post.detail', post_id=noti.post_id) }}#comment-{{ noti.comment_id }}"
+            class="text-decoration-none"
+          >
+            ({{ noti.comment_user_name }}(@{{ noti.comment_user }})の返信)
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted">通知はありません。</p>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".js-utc-time").forEach((el) => {
+      const isoStr = el.getAttribute("datetime");
+      if (!isoStr) return;
+      const d = new Date(isoStr);
+      el.textContent = d.toLocaleString([], {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    });
+  });
+</script>
+{% endblock %}
