@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}イベント: 新規作成{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>新しいイベントを作成</h1>
+  <form method="POST">
+    <div class="mb-3">
+      <label for="title" class="form-label">
+        イベントタイトル <span class="text-danger">*</span>
+      </label>
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">説明</label>
+      <textarea
+        class="form-control"
+        id="description"
+        name="description"
+        rows="3"
+      ></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="start_date" class="form-label">
+        開催開始日時 (ローカル時刻) <span class="text-danger">*</span>
+      </label>
+      <input
+        type="datetime-local"
+        class="form-control"
+        id="start_date"
+        name="start_date"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="end_date" class="form-label">
+        開催終了日時 (ローカル時刻) <span class="text-danger">*</span>
+      </label>
+      <input
+        type="datetime-local"
+        class="form-control"
+        id="end_date"
+        name="end_date"
+        required
+      />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-check-circle"></i> イベント作成
+    </button>
+  </form>
+</div>
+{% endblock %}

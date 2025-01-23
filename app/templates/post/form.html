@@ -47,6 +47,17 @@
       />
     </div>
 
+    <!-- イベント選択(任意) -->
+    <div class="mb-3">
+      <label for="event_id" class="form-label">イベント</label>
+      <select class="form-select" id="event_id" name="event_id">
+        <option value="">(イベントを選択しない)</option>
+        {% for evt in events %}
+          <option value="{{ evt.id }}">{{ evt.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
     <!-- 公開開始日時 -->
     <div class="mb-3">
       <label for="start_date" class="form-label">
@@ -186,7 +197,7 @@
 </div>
 
 <script>
-  // 選択中の画像を保持するリスト（Fileオブジェクトの配列）
+  // 選択中の画像を保持するリスト(Fileオブジェクトの配列)
   let imageFiles = [];
 
   // メディアタイプ選択の状態を保持
@@ -334,7 +345,7 @@
 
       container.appendChild(input);
 
-      // プレビュー表示処理（既存のコード）
+      // プレビュー表示処理(既存のコード)
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = document.createElement("img");
@@ -346,7 +357,7 @@
       };
       reader.readAsDataURL(file);
 
-      // 残りのUI要素追加（既存のコード）
+      // 残りのUI要素追加(既存のコード)
       const fileNameSpan = document.createElement("span");
       fileNameSpan.innerText = file.name;
 

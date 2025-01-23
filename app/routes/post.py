@@ -8,7 +8,7 @@ from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.extensions import db
-from app.models import Media, Post
+from app.models import Event, Media, Post
 
 __all__ = ["post_bp"]
 
@@ -104,6 +104,8 @@ def new():
         start_date_str = request.form.get("start_date", "").strip()
         end_date_str = request.form.get("end_date", "").strip()
 
+        event_id_str = request.form.get("event_id", "").strip()
+
         # タイトル必須
         if not title:
             abort(400, "タイトルは必須です。")
@@ -128,6 +130,12 @@ def new():
             start_date=start_dt,
             end_date=end_dt,
         )
+
+        if event_id_str.isdigit():
+            new_post.event_id = int(event_id_str)
+        else:
+            new_post.event_id = None
+
         db.session.add(new_post)
         db.session.commit()
 
@@ -171,7 +179,9 @@ def new():
         db.session.commit()
         return redirect(url_for("post.detail", post_id=new_post.id))
 
-    return render_template("post/form.html")
+    if request.method == "GET":
+        events = Event.query.order_by(Event.start_date.asc()).all()
+        return render_template("post/form.html", events=events)
 
 
 @post_bp.route("/<int:post_id>/edit", methods=["GET", "POST"])
@@ -190,6 +200,8 @@ def edit(post_id):
         start_date_str = request.form.get("start_date", "").strip()
         end_date_str = request.form.get("end_date", "").strip()
 
+        event_id_str = request.form.get("event_id", "").strip()
+
         def parse_local_datetime(dt_str):
             if not dt_str:
                 return None
@@ -199,17 +211,24 @@ def edit(post_id):
         post.start_date = parse_local_datetime(start_date_str)
         post.end_date = parse_local_datetime(end_date_str)
 
+        if event_id_str.isdigit():
+            post.event_id = int(event_id_str)
+        else:
+            post.event_id = None
+
         db.session.commit()
         return redirect(url_for("post.detail", post_id=post.id))
 
-    post_data = {
-        "title": post.title,
-        "description": post.description,
-        "tags": json.loads(post.tags) if post.tags else [],
-        "start_date": post.start_date,  # datetime or None
-        "end_date": post.end_date,
-    }
-    return render_template("post/edit_form.html", post=post_data)
+    if request.method == "GET":
+        events = Event.query.order_by(Event.start_date.asc()).all()
+        post_data = {
+            "title": post.title,
+            "description": post.description,
+            "tags": json.loads(post.tags) if post.tags else [],
+            "start_date": post.start_date,  # datetime or None
+            "end_date": post.end_date,
+        }
+        return render_template("post/form.html", events=events, post=post_data)
 
 
 @post_bp.route("/<int:post_id>/delete", methods=["POST"])

@@ -9,7 +9,7 @@ comment_bp = Blueprint("comment", __name__)
 @comment_bp.route("/<int:post_id>/comments", methods=["POST"])
 @login_required
 def add_comment(post_id):
-    # コメント作成処理（後で実装）
+    # コメント作成処理(後で実装)
     flash("コメントが追加されました。", "success")
     return redirect(url_for("post.detail", post_id=post_id))
 
@@ -17,6 +17,6 @@ def add_comment(post_id):
 @comment_bp.route("/<int:comment_id>/reply", methods=["POST"])
 @login_required
 def reply(comment_id):
-    # コメントへの返信処理（後で実装）
+    # コメントへの返信処理(後で実装)
     flash("返信が追加されました。", "success")
     return redirect(request.referrer or "/")

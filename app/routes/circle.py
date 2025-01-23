@@ -134,7 +134,7 @@ def edit_circle(circle_id):
 
         return redirect(url_for("circle.edit_circle", circle_id=circle_id))
 
-    # メンバー一覧を取得（オーナーも含む）
+    # メンバー一覧を取得(オーナーも含む)
     members = CircleMember.query.filter_by(circle_id=circle_id).all()
     return render_template("circle/edit.html", circle=circle, members=members, is_owner=is_owner)
 

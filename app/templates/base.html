@@ -33,6 +33,11 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarContent">
           <ul class="navbar-nav ms-auto">
+            <li>
+              <a class="nav-link" href="/events"
+                >イベント一覧</a
+              >
+            </li>
             <!-- ログイン状態による表示切り替え -->
             {% if current_user.is_authenticated %}
             <li>
