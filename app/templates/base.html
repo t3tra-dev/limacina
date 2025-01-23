@@ -35,6 +35,11 @@
           <ul class="navbar-nav ms-auto">
             <!-- ログイン状態による表示切り替え -->
             {% if current_user.is_authenticated %}
+            <li>
+              <a class="nav-link" href="/posts/new"
+                >投稿を作成</a
+              >
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="/users/@{{ current_user.screen_name }}"
                 >プロフィール</a

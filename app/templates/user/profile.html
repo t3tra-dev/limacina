@@ -2,7 +2,8 @@
 
 {% block content %}
 <div class="container my-5">
-  <div class="text-center">
+  <!-- ユーザー情報 -->
+  <div class="text-center mb-5">
     {% if user.avatar_id %}
     <img
       src="{{ avatar_url }}"
@@ -11,7 +12,7 @@
       style="width: 80px; height: 80px"
     />
     {% else %}
-    <i class="bi bi-person-circle" style="font-size: 80px"></i>
+    <i class="bi bi-person-circle" style="font-size: 80px;"></i>
     {% endif %}
     <h1>{{ user.name }}</h1>
     <p class="text-muted">@{{ user.screen_name }}</p>
@@ -20,8 +21,66 @@
     <a
       href="{{ url_for('user.edit_profile', screen_name=user.screen_name) }}"
       class="btn btn-primary"
-      >プロフィールを編集</a
+      ><i class="bi bi-pencil-square"></i> プロフィールを編集</a
     >
+    {% endif %}
+  </div>
+
+  <!-- 所属サークル一覧 -->
+  <div class="mb-5">
+    <h2 class="mb-3">
+      <i class="bi bi-people-fill"></i> 所属サークル
+    </h2>
+    {% if circles %}
+    <ul class="list-group">
+      {% for circle in circles %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ circle.name }}</strong>
+          <div class="text-muted small">{{ circle.description }}</div>
+        </div>
+        <a
+          href="{{ url_for('circle.detail', circle_id=circle.id) }}"
+          class="btn btn-sm btn-outline-primary"
+        >
+          <i class="bi bi-eye"></i> 詳細
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">サークルに所属していません。</p>
+    {% endif %}
+  </div>
+
+  <!-- 投稿一覧 -->
+  <div>
+    <h2 class="mb-3">
+      <i class="bi bi-card-text"></i> 投稿一覧
+    </h2>
+    {% if posts %}
+    <ul class="list-group">
+      {% for post in posts %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ post.title }}</strong>
+          {% if post.description %}
+          <div class="text-muted small">
+            {{ post.description|truncate(50) }}
+          </div>
+          {% endif %}
+        </div>
+        <a
+          href="{{ url_for('post.detail', post_id=post.id) }}"
+          class="btn btn-sm btn-outline-primary"
+        >
+          <i class="bi bi-eye"></i> 詳細
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">投稿はありません。</p>
     {% endif %}
   </div>
 </div>

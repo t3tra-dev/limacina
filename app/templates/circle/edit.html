@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>サークル編集: {{ circle.name }}</h1>
+
+  <a href="{{ url_for('circle.detail', circle_id=circle.id) }}" class="btn btn-secondary">編集をキャンセル</a>
+
+  <hr>
+
+  <!-- 説明の編集フォーム -->
+  <form method="POST" class="mb-4">
+    <label for="circle_description" class="form-label">サークルの説明</label>
+    <textarea
+      class="form-control"
+      id="circle_description"
+      name="circle_description"
+      rows="3"
+    >{{ circle.description }}</textarea>
+    <div class="mt-3">
+      <button type="submit" class="btn btn-primary">説明を更新</button>
+    </div>
+  </form>
+
+  <hr />
+
+  <!-- メンバー一覧と削除機能 -->
+  <h2>メンバー管理</h2>
+  <form method="POST">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>メンバー名</th>
+          <th>ステータス</th>
+          <th>削除</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in members %}
+        <tr>
+          <td>
+            {{ member.user.name }} (@{{ member.user.screen_name }}) {% if
+            member.user_id == circle.owner_id %}
+            <span class="badge bg-success">オーナー</span>
+            {% endif %}
+          </td>
+          <td>{{ member.status }}</td>
+          <td>
+            {% if member.user_id != circle.owner_id %}
+            <!-- オーナー以外はチェックボックスで削除可能 -->
+            <input
+              type="checkbox"
+              name="remove_user_id"
+              value="{{ member.user_id }}"
+            />
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-danger">
+      <i class="bi bi-trash"></i> 選択したメンバーを削除
+    </button>
+  </form>
+
+  <hr />
+
+  <!-- サークル削除ボタン -->
+  <div class="mt-4">
+    <form
+      action="{{ url_for('circle.delete_circle', circle_id=circle.id) }}"
+      method="POST"
+      onsubmit="return confirm('このサークルを削除してもよろしいですか？');"
+    >
+      <button type="submit" class="btn btn-outline-danger">
+        <i class="bi bi-x-circle"></i> サークルを削除
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

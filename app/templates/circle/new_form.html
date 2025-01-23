@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>サークルの新規作成</h1>
+
+  <!-- エラーメッセージ表示 -->
+  {% if errors %}
+  <div class="alert alert-danger">
+    <ul class="mb-0">
+      {% for e in errors %}
+      <li>{{ e }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <form method="POST" id="circle-form">
+    <!-- サークル名 -->
+    <div class="mb-3">
+      <label for="circle_name" class="form-label"
+        >サークル名 <span class="text-danger">*</span></label
+      >
+      <input
+        type="text"
+        class="form-control"
+        id="circle_name"
+        name="circle_name"
+        value="{{ circle_name or '' }}"
+        required
+      />
+    </div>
+    <!-- サークル説明 -->
+    <div class="mb-3">
+      <label for="circle_description" class="form-label">説明</label>
+      <textarea
+        class="form-control"
+        id="circle_description"
+        name="circle_description"
+        rows="3"
+      >{{ circle_description or '' }}</textarea>
+    </div>
+
+    <hr />
+
+    <!-- ユーザー検索セクション -->
+    <div class="mb-3">
+      <label class="form-label">招待したいユーザーの検索</label>
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control"
+          id="user-search-input"
+          placeholder="ユーザー名 / ユーザーID"
+        />
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          id="user-search-btn"
+        >
+          <i class="bi bi-search"></i> 検索
+        </button>
+      </div>
+      <div class="form-text">
+        ユーザー名またはユーザーIDを入力して検索できます。
+      </div>
+    </div>
+
+    <!-- 検索結果表示部分 -->
+    <ul class="list-group mb-3" id="search-result-list"></ul>
+
+    <hr />
+
+    <!-- 招待予定ユーザー一覧 -->
+    <label class="form-label">招待するユーザー</label>
+    <ul class="list-group mb-3" id="selected-users-list"></ul>
+
+    <!-- hidden input: 選択したユーザーのIDをカンマ区切りで格納 -->
+    <input type="hidden" name="invite_user_ids" id="invite_user_ids" />
+
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-check-circle"></i> サークルを作成
+    </button>
+  </form>
+</div>
+
+<script>
+  // 招待するユーザーIDを保持する配列
+  let inviteUserIds = [];
+
+  const userSearchInput = document.getElementById("user-search-input");
+  const userSearchBtn = document.getElementById("user-search-btn");
+  const searchResultList = document.getElementById("search-result-list");
+  const selectedUsersList = document.getElementById("selected-users-list");
+  const inviteUserIdsInput = document.getElementById("invite_user_ids");
+
+  userSearchBtn.addEventListener("click", async () => {
+    const query = userSearchInput.value.trim();
+    if (!query) {
+      showSearchResults([]);
+      return;
+    }
+
+    try {
+      const resp = await fetch(
+        `/circles/user_search?q=${encodeURIComponent(query)}`
+      );
+      if (resp.ok) {
+        const users = await resp.json();
+        showSearchResults(users);
+      } else {
+        showSearchResults([]);
+      }
+    } catch (e) {
+      console.error(e);
+      showSearchResults([]);
+    }
+  });
+
+  function showSearchResults(users) {
+    searchResultList.innerHTML = "";
+    if (users.length === 0) {
+      const li = document.createElement("li");
+      li.classList.add("list-group-item");
+      li.textContent = "ユーザーが見つかりません";
+      searchResultList.appendChild(li);
+      return;
+    }
+    users.forEach((user) => {
+      const li = document.createElement("li");
+      li.classList.add(
+        "list-group-item",
+        "d-flex",
+        "justify-content-between",
+        "align-items-center"
+      );
+      li.textContent = `${user.name} (@${user.screen_name})`;
+
+      const addBtn = document.createElement("button");
+      addBtn.classList.add("btn", "btn-sm", "btn-success");
+      addBtn.innerHTML = '<i class="bi bi-plus-circle"></i>';
+      addBtn.addEventListener("click", () => {
+        addSelectedUser(user);
+      });
+
+      li.appendChild(addBtn);
+      searchResultList.appendChild(li);
+    });
+  }
+
+  function addSelectedUser(user) {
+    if (inviteUserIds.includes(user.id)) {
+      return; // 既に追加済み
+    }
+    inviteUserIds.push(user.id);
+    updateSelectedUsersUI();
+  }
+
+  function removeSelectedUser(userId) {
+    inviteUserIds = inviteUserIds.filter((id) => id !== userId);
+    updateSelectedUsersUI();
+  }
+
+  function updateSelectedUsersUI() {
+    selectedUsersList.innerHTML = "";
+    inviteUserIds.forEach((uid) => {
+      // UI表示用に最低限の情報を検索結果から取得する
+      // 既に検索結果に無い場合などは、IDのみ表示する形でもOK
+      // ここでは簡易的に id: xxx を出す例
+      // 実際にはキャッシュなどで全ユーザー情報を持つか再度fetchを検討
+      const li = document.createElement("li");
+      li.classList.add(
+        "list-group-item",
+        "d-flex",
+        "justify-content-between",
+        "align-items-center"
+      );
+      li.textContent = `ユーザーID: ${uid}`;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.classList.add("btn", "btn-sm", "btn-danger");
+      removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
+      removeBtn.addEventListener("click", () => {
+        removeSelectedUser(uid);
+      });
+
+      li.appendChild(removeBtn);
+      selectedUsersList.appendChild(li);
+    });
+  }
+
+  // フォーム送信時、inviteUserIds をカンマ区切り文字列にして送信
+  document.getElementById("circle-form").addEventListener("submit", (e) => {
+    inviteUserIdsInput.value = inviteUserIds.join(",");
+  });
+</script>
+{% endblock %}

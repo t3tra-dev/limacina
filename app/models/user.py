@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from flask_login import UserMixin
 
@@ -32,7 +32,10 @@ class User(UserMixin, db.Model):
         "CircleMember", back_populates="user", cascade="all, delete-orphan"
     )
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        db.DateTime,
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
+        nullable=False,
     )

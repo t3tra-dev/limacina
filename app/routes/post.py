@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 import requests
 from flask import Blueprint, abort, redirect, render_template, request, url_for
@@ -29,7 +29,7 @@ def upload_image_to_cloudflare(file) -> str:
     response = requests.post(
         upload_url,
         headers={"Authorization": f"Bearer {api_token}"},
-        files={"file": file}
+        files={"file": file},
     )
 
     if response.status_code != 200:
@@ -73,7 +73,7 @@ def detail(post_id):
         post=post,
         processed_media=processed_media,
         is_own_post=is_own_post,
-        tags=tags
+        tags=tags,
     )
 
 
@@ -105,7 +105,9 @@ def new():
                 try:
                     image_id = upload_image_to_cloudflare(file)
                     if image_id:
-                        media = Media(type="image", source=image_id, post_id=new_post.id)
+                        media = Media(
+                            type="image", source=image_id, post_id=new_post.id
+                        )
                         db.session.add(media)
                 except Exception:
                     continue
@@ -120,7 +122,9 @@ def new():
                 if media_type == "youtube":
                     video_id = extract_youtube_id(url)
                     if video_id:
-                        media = Media(type="youtube", source=video_id, post_id=new_post.id)
+                        media = Media(
+                            type="youtube", source=video_id, post_id=new_post.id
+                        )
                         db.session.add(media)
                 elif media_type == "gist":
                     gist_id = extract_gist_id(url)
@@ -183,11 +187,13 @@ def delete(post_id):
 
 def extract_youtube_id(url):
     import re
+
     match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", url)
     return match.group(1) if match else None
 
 
 def extract_gist_id(url):
     import re
+
     match = re.search(r"gist\.github\.com\/([^\/]+\/[^\/]+)", url)
     return match.group(1) if match else None

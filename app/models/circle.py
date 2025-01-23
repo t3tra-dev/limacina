@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.extensions import db
 
@@ -16,9 +16,12 @@ class Circle(db.Model):
         "CircleMember", back_populates="circle", cascade="all, delete-orphan"
     )
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        db.DateTime,
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
+        nullable=False,
     )
 
 
@@ -35,4 +38,4 @@ class CircleMember(db.Model):
     user = db.relationship("User", back_populates="circle_memberships")
     circle = db.relationship("Circle", back_populates="members")
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False)

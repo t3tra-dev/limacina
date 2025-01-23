@@ -32,12 +32,22 @@ def profile(screen_name):
     user = User.query.filter_by(screen_name=screen_name).first()
     if not user:
         return render_template("errors/404.html"), 404
+
+    approved_circles = [
+        cm.circle for cm in user.circle_memberships if cm.status == "approved"
+    ]
+
+    # 投稿一覧 (最新順に並べるなら sorted / order_by など)
+    user_posts = sorted(user.posts, key=lambda p: p.created_at, reverse=True)
+
     is_own_profile = current_user.is_authenticated and current_user.id == user.id
     return render_template(
         "user/profile.html",
         user=user,
         avatar_url=f"https://imagedelivery.net/{account_hash}/{user.avatar_id}/public",
-        is_own_profile=is_own_profile
+        is_own_profile=is_own_profile,
+        circles=approved_circles,
+        posts=user_posts,
     )
 
 
@@ -67,12 +77,14 @@ def edit_profile(screen_name):
             if user.avatar_id:  # 既存アバターがあれば削除
                 delete_cloudflare_image(user.avatar_id)
 
-            upload_url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/images/v1"
+            upload_url = (
+                f"https://api.cloudflare.com/client/v4/accounts/{account_id}/images/v1"
+            )
 
             response = requests.post(
                 upload_url,
                 headers={"Authorization": f"Bearer {api_token}"},
-                files={"file": avatar_file}
+                files={"file": avatar_file},
             )
             if response.status_code == 200:
                 user.avatar_id = response.json()["result"]["id"]
@@ -80,4 +92,6 @@ def edit_profile(screen_name):
         db.session.commit()
         return redirect(url_for("user.profile", screen_name=screen_name))
 
-    return render_template("user/edit_profile.html", user=user, account_hash=account_hash)
+    return render_template(
+        "user/edit_profile.html", user=user, account_hash=account_hash
+    )

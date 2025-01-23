@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.extensions import db
 
@@ -13,7 +13,7 @@ class Role(db.Model):
         "UserRole", back_populates="role", cascade="all, delete-orphan"
     )
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False)
 
 
 class UserRole(db.Model):
@@ -26,4 +26,4 @@ class UserRole(db.Model):
     user = db.relationship("User", back_populates="roles")
     role = db.relationship("Role", back_populates="users")
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False)

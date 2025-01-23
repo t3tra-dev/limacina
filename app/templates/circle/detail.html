@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>{{ circle.name }}</h1>
+  <p>{{ circle.description }}</p>
+
+  <!-- オーナー -->
+  <p class="text-muted">
+    オーナー: <a href="{{ url_for('user.profile', screen_name=circle.owner.screen_name) }}"><strong>{{ circle.owner.name }}</strong> (@{{ circle.owner.screen_name }})</a>
+  </p>
+
+  <hr>
+  <!-- メンバー一覧 (status別に表示するなど) -->
+  <h3>メンバー一覧</h3>
+  <ul class="list-group">
+    {% for member in circle.members %}
+    <li class="list-group-item">
+      {% if member.status == 'approved' %}
+        <a href="{{ url_for('user.profile', screen_name=member.user.screen_name) }}"><strong>{{ member.user.name }}</strong> (@{{ member.user.screen_name }})</a>
+      {% else %}
+        <a href="{{ url_for('user.profile', screen_name=member.user.screen_name) }}"><span>{{ member.user.name }}</span> (@{{ member.user.screen_name }})</a> [{{ member.status }}]
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% if is_owner %}
+  <hr>
+
+  <a
+  href="{{ url_for('circle.edit_circle', circle_id=circle.id) }}"
+  class="btn btn-primary"
+  >サークルを編集</a>
+  {% endif %}
+</div>
+{% endblock %}

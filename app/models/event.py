@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.extensions import db
 
@@ -16,7 +16,10 @@ class Event(db.Model):
         "Post", back_populates="event", cascade="all, delete-orphan"
     )
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        db.DateTime,
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
+        nullable=False,
     )

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from app.extensions import db
 
@@ -15,12 +15,19 @@ class Post(db.Model):
 
     event = db.relationship("Event", back_populates="posts")
     author = db.relationship("User", back_populates="posts")
-    media = db.relationship("Media", back_populates="post", cascade="all, delete-orphan")
-    comments = db.relationship("Comment", back_populates="post", cascade="all, delete-orphan")
+    media = db.relationship(
+        "Media", back_populates="post", cascade="all, delete-orphan"
+    )
+    comments = db.relationship(
+        "Comment", back_populates="post", cascade="all, delete-orphan"
+    )
 
     start_date = db.Column(db.DateTime, nullable=True)  # 公開開始日
     end_date = db.Column(db.DateTime, nullable=True)  # 公開終了日
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now(UTC), nullable=False)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        db.DateTime,
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
+        nullable=False,
     )

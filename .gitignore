@@ -175,3 +175,4 @@ cython_debug/
 
 # wrangler
 /.wrangler
+/node_modules

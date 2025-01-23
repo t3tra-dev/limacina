@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>サークル一覧</h1>
+  <a href="{{ url_for('circle.new') }}" class="btn btn-primary mb-3">
+    <i class="bi bi-plus"></i> 新規サークル
+  </a>
+  <ul class="list-group">
+    {% for c in circles %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <a href="{{ url_for('circle.detail', circle_id=c.id) }}"><strong>{{ c.name }}</strong></a>
+        <small class="text-muted"> (オーナー: <a href="{{ url_for('user.profile', screen_name=c.owner.screen_name) }}">{{ c.owner.name }} (@{{ c.owner.screen_name }})</a>)</small>
+      </div>
+      <a href="{{ url_for('circle.detail', circle_id=c.id) }}" class="btn btn-sm btn-outline-primary">詳細</a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
