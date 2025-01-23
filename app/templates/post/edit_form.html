@@ -50,6 +50,19 @@
       />
     </div>
 
+    <!-- イベント選択 -->
+    <div class="mb-3">
+      <label for="event" class="form-label">イベント</label>
+      <select class="form-select" id="event" name="event">
+        <option value="">イベントなし</option>
+        {% for event in events %}
+          <option value="{{ event.id }}" {% if post.post_event and post.post_event.id == event.id %}selected{% endif %}>
+            {{ event.title }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
     <hr>
 
     <!-- 公開開始日時 -->

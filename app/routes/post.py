@@ -200,7 +200,7 @@ def edit(post_id):
         start_date_str = request.form.get("start_date", "").strip()
         end_date_str = request.form.get("end_date", "").strip()
 
-        event_id_str = request.form.get("event_id", "").strip()
+        event_id_str = request.form.get("event", "").strip()
 
         def parse_local_datetime(dt_str):
             if not dt_str:
@@ -227,8 +227,9 @@ def edit(post_id):
             "tags": json.loads(post.tags) if post.tags else [],
             "start_date": post.start_date,  # datetime or None
             "end_date": post.end_date,
+            "post_event": post.event,
         }
-        return render_template("post/form.html", events=events, post=post_data)
+        return render_template("post/edit_form.html", events=events, post=post_data)
 
 
 @post_bp.route("/<int:post_id>/delete", methods=["POST"])
