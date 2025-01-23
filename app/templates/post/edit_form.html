@@ -106,29 +106,27 @@
 </script>
 
 <script>
-  // post_data などにUTC日時が含まれていると仮定
-  // 例: post_data["start_date"] = "2025-02-01T12:00:00+00:00"
-
   const startDateField = document.getElementById("start_date");
   const endDateField = document.getElementById("end_date");
 
-  // もし post_data.start_date が None なら 空欄
   {% if post.start_date %}
-    const startDateStr = "{{ post.start_date.isoformat() }}"; // "YYYY-MM-DDTHH:MM:SS+00:00"
+    const startDateStr = "{{ post.start_date.isoformat() }}";
   {% else %}
     const startDateStr = "";
   {% endif %}
 
   if (startDateStr) {
-    const dt = new Date(startDateStr); // UTC
-    // "YYYY-MM-DDTHH:MM" に整形
-    const localStr = dt.toISOString().slice(0, 16);
-    // toISOString() は常にUTC基準で "YYYY-MM-DDTHH:MM:SS.sssZ" を返す
-    // slice(0,16) で "YYYY-MM-DDTHH:MM" にトリム
+    const dt = new Date(startDateStr);
+    // ローカル時刻のYYYY-MM-DDThh:mm形式に変換
+    const year = dt.getFullYear();
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    const hours = String(dt.getHours()).padStart(2, '0');
+    const minutes = String(dt.getMinutes()).padStart(2, '0');
+    const localStr = `${year}-${month}-${day}T${hours}:${minutes}`;
     startDateField.value = localStr;
   }
 
-  // end_date も同様
   {% if post.end_date %}
     const endDateStr = "{{ post.end_date.isoformat() }}";
   {% else %}
@@ -137,8 +135,14 @@
 
   if (endDateStr) {
     const dtEnd = new Date(endDateStr);
-    endDateField.value = dtEnd.toISOString().slice(0, 16);
+    // 同様にend_dateもローカル時刻に変換
+    const year = dtEnd.getFullYear();
+    const month = String(dtEnd.getMonth() + 1).padStart(2, '0');
+    const day = String(dtEnd.getDate()).padStart(2, '0');
+    const hours = String(dtEnd.getHours()).padStart(2, '0');
+    const minutes = String(dtEnd.getMinutes()).padStart(2, '0');
+    const localStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+    endDateField.value = localStr;
   }
 </script>
-
 {% endblock %}

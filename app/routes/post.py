@@ -64,6 +64,12 @@ def detail(post_id):
 
     now_utc = datetime.datetime.now(pytz.UTC)
 
+    # 投稿の日時をUTCタイムゾーンに変換
+    if post.start_date and not post.start_date.tzinfo:
+        post.start_date = pytz.UTC.localize(post.start_date)
+    if post.end_date and not post.end_date.tzinfo:
+        post.end_date = pytz.UTC.localize(post.end_date)
+
     # 公開期間外チェック (投稿者じゃなければ閲覧不可)
     if not is_own_post:
         # 開始前
@@ -107,7 +113,7 @@ def new():
             if not dt_str:
                 return None
             # 'YYYY-MM-DDTHH:MM' のようなdatetime-local形式をUTCに変換
-            local_dt = datetime.fromisoformat(dt_str)  # ローカルタイムとして解釈
+            local_dt = datetime.datetime.fromisoformat(dt_str)  # ローカルタイムとして解釈
             # UTCへ変換
             return pytz.timezone("UTC").localize(local_dt)
 
@@ -187,7 +193,7 @@ def edit(post_id):
         def parse_local_datetime(dt_str):
             if not dt_str:
                 return None
-            local_dt = datetime.fromisoformat(dt_str)
+            local_dt = datetime.datetime.fromisoformat(dt_str)
             return pytz.timezone("UTC").localize(local_dt)
 
         post.start_date = parse_local_datetime(start_date_str)
