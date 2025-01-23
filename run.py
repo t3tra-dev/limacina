@@ -15,7 +15,7 @@ def create_app():
         "DATABASE_URL", "sqlite:///limacina.db"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "default-secret-key")
+    app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
 
     # 拡張機能の初期化
     init_extensions(app)
