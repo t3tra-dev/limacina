@@ -65,6 +65,7 @@
                     allowfullscreen>
             </iframe>
           </div>
+        {% endif %}
       </div>
     {% endfor %}
   </div>
@@ -91,6 +92,87 @@
         無期限
       {% endif %}
     </small>
+  </div>
+
+  <!-- コメント表示用マクロ -->
+  {% macro render_comment_tree(comment) %}
+    <li class="list-group-item">
+      <div class="d-flex justify-content-between">
+        <div>
+          <strong>{{ comment.user.name }}</strong>
+          <span class="text-muted">@{{ comment.user.screen_name }}</span>
+          <div>{{ comment.content }}</div>
+          <div class="text-muted small">
+            投稿日時:
+            <time class="js-utc-time" datetime="{{ comment.created_at.isoformat() }}">...</time>
+          </div>
+        </div>
+        <!-- 返信ボタン -->
+        {% if current_user.is_authenticated %}
+        <button class="btn btn-sm btn-outline-secondary" 
+                data-bs-toggle="collapse" data-bs-target="#reply-form-{{ comment.id }}">
+          <i class="bi bi-reply"></i> 返信
+        </button>
+        {% endif %}
+      </div>
+      
+      <!-- 返信フォーム (collapseで隠す) -->
+      <div class="collapse mt-2" id="reply-form-{{ comment.id }}">
+        <form method="POST" action="{{ url_for('comment.add_comment', post_id=post.id) }}">
+          <div class="mb-2">
+            <label for="content-{{ comment.id }}" class="form-label">返信</label>
+            <textarea name="content" id="content-{{ comment.id }}" class="form-control" rows="2"></textarea>
+            <input type="hidden" name="reply_to_id" value="{{ comment.id }}">
+          </div>
+          <button type="submit" class="btn btn-sm btn-success">
+            <i class="bi bi-send"></i> 投稿
+          </button>
+        </form>
+      </div>
+
+      {% if comment.replies and comment.replies|length > 0 %}
+      <ul class="list-group list-group-flush ms-4 mt-2">
+        {% for child in comment.replies %}
+          {{ render_comment_tree(child) }}
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </li>
+  {% endmacro %}
+
+  <!-- コメントエリア -->
+  <div class="mt-5">
+    <h3>コメント</h3>
+
+    <!-- 新規コメントフォーム (親なし) -->
+    {% if current_user.is_authenticated %}
+      <form method="POST" action="{{ url_for('comment.add_comment', post_id=post.id) }}" class="mb-3">
+        <div class="mb-2">
+          <label for="content-root" class="form-label">新しいコメント</label>
+          <textarea name="content" id="content-root" class="form-control" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-send"></i> コメント投稿
+        </button>
+        <input type="hidden" name="reply_to_id" value="">
+      </form>
+    {% else %}
+      <p class="text-muted">コメントするにはログインが必要です。</p>
+    {% endif %}
+
+    <!-- エラー or 成功メッセージ -->
+    {% if request.args.content %}
+      <div class="alert alert-danger">{{ request.args.content }}</div>
+    {% endif %}
+    {% if request.args.comment_success %}
+      <div class="alert alert-success">コメントが投稿されました。</div>
+    {% endif %}
+
+    <ul class="list-group">
+      {% for c in post.comments if not c.reply_to_id %}
+        {{ render_comment_tree(c) }}
+      {% endfor %}
+    </ul>
   </div>
 </div>
 
