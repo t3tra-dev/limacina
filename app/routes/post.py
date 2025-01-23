@@ -21,7 +21,6 @@ account_hash = os.environ["CLOUDFLARE_ACCOUNT_HASH"]
 MEDIA_PROCESSORS = {
     "image": lambda source: f"https://imagedelivery.net/{account_hash}/{source}/public",
     "youtube": lambda source: f"https://www.youtube-nocookie.com/embed/{source}",
-    "gist": lambda source: f"https://gist.github.com/{source}",
 }
 
 
@@ -166,11 +165,6 @@ def new():
                             type="youtube", source=video_id, post_id=new_post.id
                         )
                         db.session.add(media)
-                elif media_type == "gist":
-                    gist_id = extract_gist_id(url)
-                    if gist_id:
-                        media = Media(type="gist", source=gist_id, post_id=new_post.id)
-                        db.session.add(media)
         except json.JSONDecodeError:
             raise Exception("埋め込みメディアのJSONパースエラー")
         except Exception as e:
@@ -255,11 +249,4 @@ def extract_youtube_id(url):
     import re
 
     match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", url)
-    return match.group(1) if match else None
-
-
-def extract_gist_id(url):
-    import re
-
-    match = re.search(r"gist\.github\.com\/([^\/]+\/[^\/]+)", url)
     return match.group(1) if match else None
