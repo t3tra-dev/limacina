@@ -137,6 +137,16 @@
           document.documentElement.setAttribute("data-bs-theme", theme);
         }
         localStorage.setItem("theme", theme);
+
+        // テーマアイコンを更新
+        const themeIcon = document.querySelector("#themeDropdown i");
+        if (theme === "light") {
+          themeIcon.className = "bi bi-brightness-high-fill";
+        } else if (theme === "dark") {
+          themeIcon.className = "bi bi-moon-stars-fill";
+        } else {
+          themeIcon.className = "bi bi-circle-half";
+        }
       }
 
       systemThemeMedia.addEventListener("change", (e) => {
