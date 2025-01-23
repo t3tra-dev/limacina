@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>投稿を編集</h1>
+
+  <!-- エラーメッセージ表示領域（必要に応じてJSで制御）-->
+  <div id="error-message" class="alert alert-danger d-none" role="alert"></div>
+
+  <form method="POST" id="edit-post-form">
+    <!-- タイトル -->
+    <div class="mb-3">
+      <label for="title" class="form-label"
+        >タイトル <span class="text-danger">*</span></label
+      >
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        value="{{ post.title }}"
+        required
+      />
+    </div>
+
+    <!-- 説明 -->
+    <div class="mb-3">
+      <label for="description" class="form-label">説明</label>
+      <textarea
+        class="form-control"
+        id="description"
+        name="description"
+        rows="4"
+      >
+{{ post.description }}</textarea
+      >
+    </div>
+
+    <!-- タグ -->
+    <div class="mb-3">
+      <label for="tags" class="form-label">タグ（カンマ区切り）</label>
+      <input
+        type="text"
+        class="form-control"
+        id="tags"
+        name="tags"
+        value="{{ post.tags|join(', ') }}"
+      />
+    </div>
+
+    <!-- 送信ボタン -->
+    <button type="submit" class="btn btn-success">
+      <i class="bi bi-check-circle"></i> 更新する
+    </button>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById("edit-post-form");
+  form.addEventListener("submit", (e) => {
+    const titleInput = document.getElementById("title");
+    if (!titleInput.value.trim()) {
+      e.preventDefault();
+      showError("タイトルを入力してください。");
+    }
+  });
+
+  function showError(message) {
+    const errBox = document.getElementById("error-message");
+    errBox.textContent = message;
+    errBox.classList.remove("d-none");
+    setTimeout(() => {
+      errBox.classList.add("d-none");
+    }, 3000);
+  }
+</script>
+
+{% endblock %}

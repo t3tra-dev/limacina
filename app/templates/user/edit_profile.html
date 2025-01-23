@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+  <form method="POST" enctype="multipart/form-data" id="profile-form">
+    <div class="mb-3">
+      <label for="name" class="form-label">名前</label>
+      <input
+        type="text"
+        class="form-control"
+        id="name"
+        name="name"
+        value="{{ user.name }}"
+      />
+    </div>
+    <div class="mb-3">
+      <label for="bio" class="form-label">自己紹介</label>
+      <textarea class="form-control" id="bio" name="bio" rows="3">{% if user.bio %}{{ user.bio }}{% endif %}</textarea>
+    </div>
+    <div class="mb-3">
+      <label for="avatar" class="form-label">アバター画像</label>
+      {% if user.avatar_id %}
+      <div class="mb-2">
+        <img
+          src="https://imagedelivery.net/{{ account_hash }}/{{ user.avatar_id }}/public"
+          alt="アバター"
+          class="rounded-circle"
+          style="width: 80px; height: 80px"
+        />
+      </div>
+      <button
+        type="button"
+        class="btn btn-danger mb-2"
+        id="remove-avatar-button"
+      >
+        現在のアバターを削除
+      </button>
+      <input
+        type="hidden"
+        name="remove_avatar"
+        id="remove-avatar"
+        value="false"
+      />
+      {% else %}
+      <p class="text-muted">アバターは設定されていません。</p>
+      {% endif %}
+      <input
+        type="file"
+        class="form-control"
+        id="avatar"
+        name="avatar"
+        accept="image/*"
+      />
+      <canvas id="avatar-preview" class="d-none"></canvas>
+      <input type="hidden" id="avatar-cropped" name="avatar_cropped">
+    </div>
+    <button type="submit" class="btn btn-success">保存</button>
+  </form>
+</div>
+
+<script>
+  document.getElementById("remove-avatar-button")?.addEventListener(
+    "click",
+    function () {
+      if (confirm("アバター画像を削除してもよろしいですか？")) {
+        document.getElementById("remove-avatar").value = "true";
+        this.textContent = "アバター削除待ち";
+        this.disabled = true;
+        document.getElementById("avatar").disabled = true;
+      }
+    }
+  );
+
+  const avatarInput = document.getElementById("avatar");
+  const canvas = document.getElementById("avatar-preview");
+  const croppedInput = document.getElementById("avatar-cropped");
+
+  avatarInput.addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.src = e.target.result;
+      img.onload = () => {
+        // 正方形にトリミング
+        const size = Math.min(img.width, img.height);
+        const ctx = canvas.getContext("2d");
+        canvas.width = size;
+        canvas.height = size;
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
+
+        // プレビュー表示
+        canvas.classList.remove("d-none");
+        canvas.style.borderRadius = "50%";
+        canvas.style.width = "80px";
+        canvas.style.height = "80px";
+
+        // トリミングした画像をBlobとして取得
+        canvas.toBlob((blob) => {
+          const croppedFile = new File([blob], file.name, { type: "image/jpeg" });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(croppedFile);
+          avatarInput.files = dataTransfer.files; // <input type="file"> に設定
+        }, "image/jpeg", 0.9);
+      };
+    };
+    reader.readAsDataURL(file);
+  });
+</script>
+{% endblock %}

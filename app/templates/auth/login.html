@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>ログイン</h1>
+  <form method="POST" class="mt-4">
+    <div class="mb-3">
+      <label for="screen_name" class="form-label">ユーザーID</label>
+      <input
+        type="text"
+        id="screen_name"
+        name="screen_name"
+        class="form-control"
+        value="{{ request.form.screen_name or '' }}"
+      />
+      {% if errors.screen_name %}
+      <div class="text-danger mt-1">{{ errors.screen_name }}</div>
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">パスワード</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="form-control"
+      />
+      {% if errors.password %}
+      <div class="text-danger mt-1">{{ errors.password }}</div>
+      {% endif %}
+    </div>
+    {% if errors.general %}
+    <div class="text-danger mb-3">{{ errors.general }}</div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">ログイン</button>
+  </form>
+  <div class="mt-3">
+    <a href="/auth/register">新規登録はこちら</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,357 @@
+{% extends "base.html" %} {% block content %}
+<div class="container my-5">
+  <h1>新しい投稿を作成</h1>
+
+  <!-- メッセージ表示欄 -->
+  <div id="error-message" class="alert alert-danger d-none" role="alert"></div>
+
+  <form id="post-form" method="POST" enctype="multipart/form-data">
+    <!-- タイトル -->
+    <div class="mb-3">
+      <label for="title" class="form-label"
+        >タイトル <span class="text-danger">*</span></label
+      >
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        required
+      />
+    </div>
+
+    <!-- 説明 -->
+    <div class="mb-3">
+      <label for="description" class="form-label">説明</label>
+      <textarea
+        class="form-control"
+        id="description"
+        name="description"
+        rows="4"
+      ></textarea>
+    </div>
+
+    <!-- タグ -->
+    <div class="mb-3">
+      <label for="tags" class="form-label">タグ(カンマ区切り)</label>
+      <input
+        type="text"
+        class="form-control"
+        id="tags"
+        name="tags"
+        placeholder="例: illustration, music, 3DCG"
+      />
+    </div>
+
+    <hr />
+
+    <!-- 画像アップロードセクション -->
+    <div class="mb-3">
+      <label class="form-label">画像ファイル (複数回選択可)</label>
+      <div class="input-group">
+        <input
+          type="file"
+          class="form-control"
+          id="image-files"
+          accept="image/*"
+          multiple
+        />
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          id="add-images-btn"
+        >
+          <i class="bi bi-upload"></i> 画像を追加
+        </button>
+      </div>
+      <div class="form-text">
+        画像は何度でも選択できます。選択後「画像を追加」ボタンを押してください。
+      </div>
+    </div>
+
+    <!-- 追加した画像のプレビュー -->
+    <ul class="list-group mb-3" id="image-list"></ul>
+
+    <hr />
+
+    <!-- メディア追加セクション (YouTube, Gist, その他) -->
+    <div class="mb-3">
+      <label for="media-url" class="form-label">埋め込みメディア</label>
+      <div class="input-group">
+        <!-- ドロップダウンでメディアタイプを選択 -->
+        <button
+          class="btn btn-outline-secondary dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          id="media-type-btn"
+        >
+          選択してください
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a
+              class="dropdown-item media-type-select"
+              href="#"
+              data-type="youtube"
+              >YouTube</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item media-type-select" href="#" data-type="gist"
+              >GitHub Gist</a
+            >
+          </li>
+          <li>
+            <a
+              class="dropdown-item media-type-select"
+              href="#"
+              data-type="other"
+              >その他</a
+            >
+          </li>
+        </ul>
+        <input
+          type="text"
+          class="form-control"
+          id="media-url"
+          placeholder="動画URLやGistのURLなど"
+        />
+        <button class="btn btn-primary" type="button" id="add-media-btn">
+          <i class="bi bi-plus-circle"></i> メディアを追加
+        </button>
+      </div>
+      <div class="form-text">
+        YouTubeの場合は動画URL、GitHub
+        Gistの場合はgist.github.comのURLを入力してください。
+      </div>
+    </div>
+
+    <!-- 追加したメディアの一覧 -->
+    <ul class="list-group mb-3" id="media-list"></ul>
+
+    <hr />
+
+    <!-- 画像ファイル用の隠しフィールド -->
+    <div id="image-files-container">
+      <!-- 動的に追加される -->
+    </div>
+
+    <!-- メディアURL用の隠しフィールド -->
+    <input type="hidden" name="embed_urls" id="embed-urls-input" />
+
+    <!-- 送信ボタン -->
+    <button type="submit" class="btn btn-success">
+      <i class="bi bi-check-circle"></i> 投稿する
+    </button>
+  </form>
+</div>
+
+<script>
+  // 選択中の画像を保持するリスト（Fileオブジェクトの配列）
+  let imageFiles = [];
+
+  // メディアタイプ選択の状態を保持
+  let currentMediaType = null;
+
+  // 埋め込みメディア情報を保持する配列
+  let mediaListData = [];
+
+  // ---------------------------
+  // 画像アップロード関連の処理
+  // ---------------------------
+  document.getElementById("add-images-btn").addEventListener("click", () => {
+    const fileInput = document.getElementById("image-files");
+    if (!fileInput.files.length) {
+      showError("画像ファイルを選択してください。");
+      return;
+    }
+
+    // 選択されたファイルを imageFiles に追加
+    for (let i = 0; i < fileInput.files.length; i++) {
+      imageFiles.push(fileInput.files[i]);
+    }
+
+    // UI更新
+    updateImageListUI();
+    fileInput.value = ""; // 選択リセット
+  });
+
+  // 画像リストのUIを更新
+  function updateImageListUI() {
+    const imageList = document.getElementById("image-list");
+    imageList.innerHTML = "";
+
+    imageFiles.forEach((file, index) => {
+      const li = document.createElement("li");
+      li.classList.add(
+        "list-group-item",
+        "d-flex",
+        "justify-content-between",
+        "align-items-center"
+      );
+
+      // プレビュー用にFileReaderを使用
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        img.alt = file.name;
+        img.style.height = "60px";
+        img.classList.add("me-3");
+        li.prepend(img);
+      };
+      reader.readAsDataURL(file);
+
+      // ファイル名表示
+      const fileNameSpan = document.createElement("span");
+      fileNameSpan.innerText = file.name;
+
+      // 削除ボタン
+      const removeBtn = document.createElement("button");
+      removeBtn.classList.add("btn", "btn-sm", "btn-danger");
+      removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
+      removeBtn.addEventListener("click", () => {
+        imageFiles.splice(index, 1);
+        updateImageListUI();
+      });
+
+      li.appendChild(fileNameSpan);
+      li.appendChild(removeBtn);
+      imageList.appendChild(li);
+    });
+  }
+
+  // ---------------------------
+  // メディアタイプ選択関連の処理
+  // ---------------------------
+  const mediaTypeBtn = document.getElementById("media-type-btn");
+  document.querySelectorAll(".media-type-select").forEach((item) => {
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      currentMediaType = item.getAttribute("data-type");
+      mediaTypeBtn.textContent = `選択: ${currentMediaType}`;
+    });
+  });
+
+  // メディア追加ボタンの処理
+  document.getElementById("add-media-btn").addEventListener("click", () => {
+    if (!currentMediaType) {
+      showError("メディアタイプを選択してください。");
+      return;
+    }
+
+    const urlInput = document.getElementById("media-url");
+    const urlValue = urlInput.value.trim();
+    if (!urlValue) {
+      showError("メディアのURLを入力してください。");
+      return;
+    }
+
+    // 簡単なバリデーション例:
+    if (
+      currentMediaType === "youtube" &&
+      !/(youtu\.be|youtube\.com)/.test(urlValue)
+    ) {
+      showError("YouTubeのURL形式ではありません。");
+      return;
+    }
+    if (currentMediaType === "gist" && !/gist\.github\.com/.test(urlValue)) {
+      showError("GitHub GistのURL形式ではありません。");
+      return;
+    }
+
+    mediaListData.push({ type: currentMediaType, url: urlValue });
+    updateMediaListUI();
+    urlInput.value = "";
+  });
+
+  // 画像ファイルを追加する際の処理
+  function updateImageListUI() {
+    const imageList = document.getElementById("image-list");
+    const container = document.getElementById("image-files-container");
+    imageList.innerHTML = "";
+    container.innerHTML = ""; // 隠しフィールドをクリア
+
+    imageFiles.forEach((file, index) => {
+      // プレビュー表示用のリストアイテム作成
+      const li = document.createElement("li");
+      li.classList.add(
+        "list-group-item",
+        "d-flex",
+        "justify-content-between",
+        "align-items-center"
+      );
+
+      // ファイル送信用の隠しinput作成
+      const input = document.createElement("input");
+      input.type = "file";
+      input.name = "media";
+      input.style.display = "none";
+
+      // FileListオブジェクトを作成
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      input.files = dataTransfer.files;
+
+      container.appendChild(input);
+
+      // プレビュー表示処理（既存のコード）
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        img.alt = file.name;
+        img.style.height = "60px";
+        img.classList.add("me-3");
+        li.prepend(img);
+      };
+      reader.readAsDataURL(file);
+
+      // 残りのUI要素追加（既存のコード）
+      const fileNameSpan = document.createElement("span");
+      fileNameSpan.innerText = file.name;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.classList.add("btn", "btn-sm", "btn-danger");
+      removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
+      removeBtn.addEventListener("click", () => {
+        imageFiles.splice(index, 1);
+        updateImageListUI();
+      });
+
+      li.appendChild(fileNameSpan);
+      li.appendChild(removeBtn);
+      imageList.appendChild(li);
+    });
+  }
+
+  // フォーム送信時の処理
+  document.getElementById("post-form").addEventListener("submit", (e) => {
+    // バリデーション
+    const titleValue = document.getElementById("title").value.trim();
+    if (!titleValue) {
+        e.preventDefault();
+        showError("タイトルは必須です。");
+        return;
+    }
+
+    // 埋め込みメディアデータをJSONとして設定
+    const embedUrlsInput = document.getElementById("embed-urls-input");
+    embedUrlsInput.value = JSON.stringify(mediaListData);
+  });
+
+  // ---------------------------
+  // エラー表示ヘルパー
+  // ---------------------------
+  function showError(message) {
+    const errBox = document.getElementById("error-message");
+    errBox.textContent = message;
+    errBox.classList.remove("d-none");
+    setTimeout(() => {
+      errBox.classList.add("d-none");
+    }, 3000);
+  }
+</script>
+
+{% endblock %}
