@@ -53,7 +53,7 @@
       <select class="form-select" id="event_id" name="event_id">
         <option value="">(イベントを選択しない)</option>
         {% for evt in events %}
-          <option value="{{ evt.id }}">{{ evt.title }}</option>
+        <option value="{{ evt.id }}">{{ evt.title }}</option>
         {% endfor %}
       </select>
     </div>
@@ -74,7 +74,7 @@
       </div>
     </div>
 
-    <hr>
+    <hr />
 
     <!-- 公開終了日時 -->
     <div class="mb-3">
@@ -165,9 +165,7 @@
           <i class="bi bi-plus-circle"></i> メディアを追加
         </button>
       </div>
-      <div class="form-text">
-        YouTubeの場合は動画URLを入力してください。
-      </div>
+      <div class="form-text">YouTubeの場合は動画URLを入力してください。</div>
     </div>
 
     <!-- 追加したメディアの一覧 -->
@@ -191,187 +189,194 @@
 </div>
 
 <script>
-  // 選択中の画像を保持するリスト(Fileオブジェクトの配列)
+  // 状態管理用の変数
   let imageFiles = [];
-
-  // メディアタイプ選択の状態を保持
   let currentMediaType = null;
-
-  // 埋め込みメディア情報を保持する配列
   let mediaListData = [];
 
-  // ---------------------------
-  // 画像アップロード関連の処理
-  // ---------------------------
-  document.getElementById("add-images-btn").addEventListener("click", () => {
-    const fileInput = document.getElementById("image-files");
-    if (!fileInput.files.length) {
-      showError("画像ファイルを選択してください。");
-      return;
-    }
+  // DOM要素の参照を保持
+  const elements = {
+    imageFiles: document.getElementById("image-files"),
+    imageList: document.getElementById("image-list"),
+    imageFilesContainer: document.getElementById("image-files-container"),
+    mediaTypeBtn: document.getElementById("media-type-btn"),
+    mediaUrl: document.getElementById("media-url"),
+    mediaList: document.getElementById("media-list"),
+    embedUrlsInput: document.getElementById("embed-urls-input"),
+    postForm: document.getElementById("post-form"),
+    errorMessage: document.getElementById("error-message"),
+  };
 
-    // 選択されたファイルを imageFiles に追加
-    for (let i = 0; i < fileInput.files.length; i++) {
-      imageFiles.push(fileInput.files[i]);
-    }
+  // 画像関連の処理
+  const imageHandler = {
+    addImages: () => {
+      if (!elements.imageFiles.files.length) {
+        showError("画像ファイルを選択してください。");
+        return;
+      }
 
-    // UI更新
-    updateImageListUI();
-    fileInput.value = ""; // 選択リセット
-  });
-
-  // 画像リストのUIを更新
-  function updateImageListUI() {
-    const imageList = document.getElementById("image-list");
-    imageList.innerHTML = "";
-
-    imageFiles.forEach((file, index) => {
-      const li = document.createElement("li");
-      li.classList.add(
-        "list-group-item",
-        "d-flex",
-        "justify-content-between",
-        "align-items-center"
-      );
-
-      // プレビュー用にFileReaderを使用
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = document.createElement("img");
-        img.src = e.target.result;
-        img.alt = file.name;
-        img.style.height = "60px";
-        img.classList.add("me-3");
-        li.prepend(img);
-      };
-      reader.readAsDataURL(file);
-
-      // ファイル名表示
-      const fileNameSpan = document.createElement("span");
-      fileNameSpan.innerText = file.name;
-
-      // 削除ボタン
-      const removeBtn = document.createElement("button");
-      removeBtn.classList.add("btn", "btn-sm", "btn-danger");
-      removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
-      removeBtn.addEventListener("click", () => {
-        imageFiles.splice(index, 1);
-        updateImageListUI();
+      Array.from(elements.imageFiles.files).forEach((file) => {
+        imageFiles.push(file);
       });
 
-      li.appendChild(fileNameSpan);
-      li.appendChild(removeBtn);
-      imageList.appendChild(li);
-    });
+      imageHandler.updateUI();
+      elements.imageFiles.value = "";
+    },
+
+    updateUI: () => {
+      elements.imageList.innerHTML = "";
+      elements.imageFilesContainer.innerHTML = "";
+
+      imageFiles.forEach((file, index) => {
+        // リストアイテムの作成
+        const li = createListItem();
+
+        // プレビュー画像の表示
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = createPreviewImage(e.target.result, file.name);
+          li.prepend(img);
+        };
+        reader.readAsDataURL(file);
+
+        // ファイル名の表示
+        const fileNameSpan = document.createElement("span");
+        fileNameSpan.textContent = file.name;
+
+        // 削除ボタンの追加
+        const removeBtn = createRemoveButton(() => {
+          imageFiles.splice(index, 1);
+          imageHandler.updateUI();
+        });
+
+        // 隠しinput要素の作成
+        const hiddenInput = createHiddenFileInput(file);
+        elements.imageFilesContainer.appendChild(hiddenInput);
+
+        li.appendChild(fileNameSpan);
+        li.appendChild(removeBtn);
+        elements.imageList.appendChild(li);
+      });
+    },
+  };
+
+  // メディア関連の処理
+  const mediaHandler = {
+    updateUI: () => {
+      elements.mediaList.innerHTML = "";
+
+      mediaListData.forEach((item, index) => {
+        const li = createListItem();
+
+        const mediaInfo = document.createElement("span");
+        mediaInfo.textContent = `${item.type}: ${item.url}`;
+
+        const removeBtn = createRemoveButton(() => {
+          mediaListData.splice(index, 1);
+          mediaHandler.updateUI();
+        });
+
+        li.appendChild(mediaInfo);
+        li.appendChild(removeBtn);
+        elements.mediaList.appendChild(li);
+      });
+    },
+
+    addMedia: () => {
+      if (!currentMediaType) {
+        showError("メディアタイプを選択してください。");
+        return;
+      }
+
+      const urlValue = elements.mediaUrl.value.trim();
+      if (!urlValue) {
+        showError("メディアのURLを入力してください。");
+        return;
+      }
+
+      // URLバリデーション
+      if (
+        currentMediaType === "youtube" &&
+        !/(youtu\.be|youtube\.com)/.test(urlValue)
+      ) {
+        showError("YouTubeのURL形式ではありません。");
+        return;
+      }
+
+      mediaListData.push({ type: currentMediaType, url: urlValue });
+      mediaHandler.updateUI();
+      elements.mediaUrl.value = "";
+    },
+  };
+
+  // ユーティリティ関数
+  function createListItem() {
+    const li = document.createElement("li");
+    li.classList.add(
+      "list-group-item",
+      "d-flex",
+      "justify-content-between",
+      "align-items-center"
+    );
+    return li;
   }
 
-  // ---------------------------
-  // メディアタイプ選択関連の処理
-  // ---------------------------
-  const mediaTypeBtn = document.getElementById("media-type-btn");
+  function createPreviewImage(src, alt) {
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = alt;
+    img.style.height = "60px";
+    img.classList.add("me-3");
+    return img;
+  }
+
+  function createRemoveButton(onClick) {
+    const btn = document.createElement("button");
+    btn.classList.add("btn", "btn-sm", "btn-danger");
+    btn.innerHTML = '<i class="bi bi-trash"></i>';
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  function createHiddenFileInput(file) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.name = "media";
+    input.style.display = "none";
+
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    input.files = dataTransfer.files;
+
+    return input;
+  }
+
+  function showError(message) {
+    elements.errorMessage.textContent = message;
+    elements.errorMessage.classList.remove("d-none");
+    setTimeout(() => {
+      elements.errorMessage.classList.add("d-none");
+    }, 3000);
+  }
+
+  // イベントリスナーの設定
+  document
+    .getElementById("add-images-btn")
+    .addEventListener("click", imageHandler.addImages);
+
   document.querySelectorAll(".media-type-select").forEach((item) => {
     item.addEventListener("click", (e) => {
       e.preventDefault();
       currentMediaType = item.getAttribute("data-type");
-      mediaTypeBtn.textContent = `選択: ${currentMediaType}`;
+      elements.mediaTypeBtn.textContent = `選択: ${currentMediaType}`;
     });
   });
 
-  // メディア追加ボタンの処理
-  document.getElementById("add-media-btn").addEventListener("click", () => {
-    if (!currentMediaType) {
-      showError("メディアタイプを選択してください。");
-      return;
-    }
+  document
+    .getElementById("add-media-btn")
+    .addEventListener("click", mediaHandler.addMedia);
 
-    const urlInput = document.getElementById("media-url");
-    const urlValue = urlInput.value.trim();
-    if (!urlValue) {
-      showError("メディアのURLを入力してください。");
-      return;
-    }
-
-    // 簡単なバリデーション例:
-    if (
-      currentMediaType === "youtube" &&
-      !/(youtu\.be|youtube\.com)/.test(urlValue)
-    ) {
-      showError("YouTubeのURL形式ではありません。");
-      return;
-    }
-    if (currentMediaType === "gist" && !/gist\.github\.com/.test(urlValue)) {
-      showError("GitHub GistのURL形式ではありません。");
-      return;
-    }
-
-    mediaListData.push({ type: currentMediaType, url: urlValue });
-    updateMediaListUI();
-    urlInput.value = "";
-  });
-
-  // 画像ファイルを追加する際の処理
-  function updateImageListUI() {
-    const imageList = document.getElementById("image-list");
-    const container = document.getElementById("image-files-container");
-    imageList.innerHTML = "";
-    container.innerHTML = ""; // 隠しフィールドをクリア
-
-    imageFiles.forEach((file, index) => {
-      // プレビュー表示用のリストアイテム作成
-      const li = document.createElement("li");
-      li.classList.add(
-        "list-group-item",
-        "d-flex",
-        "justify-content-between",
-        "align-items-center"
-      );
-
-      // ファイル送信用の隠しinput作成
-      const input = document.createElement("input");
-      input.type = "file";
-      input.name = "media";
-      input.style.display = "none";
-
-      // FileListオブジェクトを作成
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      input.files = dataTransfer.files;
-
-      container.appendChild(input);
-
-      // プレビュー表示処理(既存のコード)
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = document.createElement("img");
-        img.src = e.target.result;
-        img.alt = file.name;
-        img.style.height = "60px";
-        img.classList.add("me-3");
-        li.prepend(img);
-      };
-      reader.readAsDataURL(file);
-
-      // 残りのUI要素追加(既存のコード)
-      const fileNameSpan = document.createElement("span");
-      fileNameSpan.innerText = file.name;
-
-      const removeBtn = document.createElement("button");
-      removeBtn.classList.add("btn", "btn-sm", "btn-danger");
-      removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
-      removeBtn.addEventListener("click", () => {
-        imageFiles.splice(index, 1);
-        updateImageListUI();
-      });
-
-      li.appendChild(fileNameSpan);
-      li.appendChild(removeBtn);
-      imageList.appendChild(li);
-    });
-  }
-
-  // フォーム送信時の処理
-  document.getElementById("post-form").addEventListener("submit", (e) => {
-    // バリデーション
+  elements.postForm.addEventListener("submit", (e) => {
     const titleValue = document.getElementById("title").value.trim();
     if (!titleValue) {
       e.preventDefault();
@@ -379,22 +384,8 @@
       return;
     }
 
-    // 埋め込みメディアデータをJSONとして設定
-    const embedUrlsInput = document.getElementById("embed-urls-input");
-    embedUrlsInput.value = JSON.stringify(mediaListData);
+    elements.embedUrlsInput.value = JSON.stringify(mediaListData);
   });
-
-  // ---------------------------
-  // エラー表示ヘルパー
-  // ---------------------------
-  function showError(message) {
-    const errBox = document.getElementById("error-message");
-    errBox.textContent = message;
-    errBox.classList.remove("d-none");
-    setTimeout(() => {
-      errBox.classList.add("d-none");
-    }, 3000);
-  }
 </script>
 
 {% endblock %}
