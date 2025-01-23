@@ -66,9 +66,47 @@
   <div class="text-muted">
     <small>
       投稿者: <a href="{{ url_for('user.profile', screen_name=post.author.screen_name) }}" 
-               class="text-decoration-none">{{ post.author.name }}</a><br>
-      投稿日時: {{ post.created_at.strftime('%Y年%m月%d日 %H:%M') }}
+               class="text-decoration-none"><strong>{{ post.author.name }}</strong> (@{{ post.author.screen_name }})</a><br>
+      投稿日時: <time class="js-utc-time" datetime="{{ post.created_at.isoformat() }}">...</time><br>
+
+      公開期間:
+      {% if post.start_date %}
+        <time class="js-utc-time" datetime="{{ post.start_date.isoformat() }}"></time>
+      {% else %}
+        いつでも
+      {% endif %}
+      -
+      {% if post.end_date %}
+        <time class="js-utc-time" datetime="{{ post.end_date.isoformat() }}"></time>
+      {% else %}
+        無期限
+      {% endif %}
     </small>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const els = document.querySelectorAll(".js-utc-time");
+    els.forEach(el => {
+      const utcStr = el.getAttribute("datetime");   // "2025-01-23T15:00:00+00:00" 等
+      if (!utcStr) return;
+      const dateObj = new Date(utcStr);             // UTC日時としてパース
+  
+      // ローカライズ表示用
+      // 例: 'numeric' 指定で年は4桁、月日は数値2桁、時分2桁など
+      const options = {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      };
+  
+      // ローカルタイムの文字列を取得
+      const localStr = dateObj.toLocaleString([], options);
+      el.textContent = localStr;
+    });
+  });
+  </script>
 {% endblock %}

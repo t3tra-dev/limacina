@@ -48,6 +48,36 @@
       />
     </div>
 
+    <hr>
+
+    <!-- 公開開始日時 -->
+    <div class="mb-3">
+      <label for="start_date" class="form-label">
+        公開開始日時 (ローカル時刻)
+      </label>
+      <input
+        type="datetime-local"
+        class="form-control"
+        id="start_date"
+        name="start_date"
+        value=""
+      />
+    </div>
+
+    <!-- 公開終了日時 -->
+    <div class="mb-3">
+      <label for="end_date" class="form-label">
+        公開終了日時 (ローカル時刻)
+      </label>
+      <input
+        type="datetime-local"
+        class="form-control"
+        id="end_date"
+        name="end_date"
+        value=""
+      />
+    </div>
+
     <!-- 送信ボタン -->
     <button type="submit" class="btn btn-success">
       <i class="bi bi-check-circle"></i> 更新する
@@ -72,6 +102,42 @@
     setTimeout(() => {
       errBox.classList.add("d-none");
     }, 3000);
+  }
+</script>
+
+<script>
+  // post_data などにUTC日時が含まれていると仮定
+  // 例: post_data["start_date"] = "2025-02-01T12:00:00+00:00"
+
+  const startDateField = document.getElementById("start_date");
+  const endDateField = document.getElementById("end_date");
+
+  // もし post_data.start_date が None なら 空欄
+  {% if post.start_date %}
+    const startDateStr = "{{ post.start_date.isoformat() }}"; // "YYYY-MM-DDTHH:MM:SS+00:00"
+  {% else %}
+    const startDateStr = "";
+  {% endif %}
+
+  if (startDateStr) {
+    const dt = new Date(startDateStr); // UTC
+    // "YYYY-MM-DDTHH:MM" に整形
+    const localStr = dt.toISOString().slice(0, 16);
+    // toISOString() は常にUTC基準で "YYYY-MM-DDTHH:MM:SS.sssZ" を返す
+    // slice(0,16) で "YYYY-MM-DDTHH:MM" にトリム
+    startDateField.value = localStr;
+  }
+
+  // end_date も同様
+  {% if post.end_date %}
+    const endDateStr = "{{ post.end_date.isoformat() }}";
+  {% else %}
+    const endDateStr = "";
+  {% endif %}
+
+  if (endDateStr) {
+    const dtEnd = new Date(endDateStr);
+    endDateField.value = dtEnd.toISOString().slice(0, 16);
   }
 </script>
 

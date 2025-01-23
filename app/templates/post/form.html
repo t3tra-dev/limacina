@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+
+{% block content %}
 <div class="container my-5">
   <h1>新しい投稿を作成</h1>
 
@@ -41,6 +43,40 @@
         name="tags"
         placeholder="例: illustration, music, 3DCG"
       />
+    </div>
+
+    <!-- 公開開始日時 -->
+    <div class="mb-3">
+      <label for="start_date" class="form-label">
+        公開開始日時 (ローカル時刻)
+      </label>
+      <input
+        type="datetime-local"
+        class="form-control"
+        id="start_date"
+        name="start_date"
+      />
+      <div class="form-text">
+        公開開始日時を指定しない場合は、すぐに公開されます。
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 公開終了日時 -->
+    <div class="mb-3">
+      <label for="end_date" class="form-label">
+        公開終了日時 (ローカル時刻)
+      </label>
+      <input
+        type="datetime-local"
+        class="form-control"
+        id="end_date"
+        name="end_date"
+      />
+      <div class="form-text">
+        公開終了日時を指定しない場合は、無制限に公開されます。
+      </div>
     </div>
 
     <hr />
@@ -331,9 +367,9 @@
     // バリデーション
     const titleValue = document.getElementById("title").value.trim();
     if (!titleValue) {
-        e.preventDefault();
-        showError("タイトルは必須です。");
-        return;
+      e.preventDefault();
+      showError("タイトルは必須です。");
+      return;
     }
 
     // 埋め込みメディアデータをJSONとして設定

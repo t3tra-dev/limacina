@@ -1,6 +1,8 @@
+import datetime
 import json
 import os
 
+import pytz
 import requests
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -58,14 +60,20 @@ def parse_tags(tag_string: str) -> list[str]:
 @post_bp.route("/<int:post_id>", methods=["GET"])
 def detail(post_id):
     post = Post.query.get_or_404(post_id)
-
-    # メディアの処理
-    processed_media = [process_media(media) for media in post.media]
-
-    # 投稿者が自分自身かどうかを確認
     is_own_post = current_user.is_authenticated and current_user.id == post.author_id
 
-    # タグをJSONから変換
+    now_utc = datetime.datetime.now(pytz.UTC)
+
+    # 公開期間外チェック (投稿者じゃなければ閲覧不可)
+    if not is_own_post:
+        # 開始前
+        if post.start_date and now_utc < post.start_date:
+            abort(403, description="この投稿はまだ公開されていません。")
+        # 終了後
+        if post.end_date and now_utc > post.end_date:
+            abort(403, description="この投稿の公開期間は終了しました。")
+
+    processed_media = [process_media(media) for media in post.media]
     tags = json.loads(post.tags) if post.tags else []
 
     return render_template(
@@ -87,14 +95,32 @@ def new():
         files = request.files.getlist("media")
         embed_urls = request.form.get("embed_urls", "[]")
 
+        start_date_str = request.form.get("start_date", "").strip()
+        end_date_str = request.form.get("end_date", "").strip()
+
+        # タイトル必須
         if not title:
             abort(400, "タイトルは必須です。")
+
+        # 日付をUTCに変換
+        def parse_local_datetime(dt_str):
+            if not dt_str:
+                return None
+            # 'YYYY-MM-DDTHH:MM' のようなdatetime-local形式をUTCに変換
+            local_dt = datetime.fromisoformat(dt_str)  # ローカルタイムとして解釈
+            # UTCへ変換
+            return pytz.timezone("UTC").localize(local_dt)
+
+        start_dt = parse_local_datetime(start_date_str)
+        end_dt = parse_local_datetime(end_date_str)
 
         new_post = Post(
             title=title,
             description=description,
             tags=json.dumps(parse_tags(tags)),
             author_id=current_user.id,
+            start_date=start_dt,
+            end_date=end_dt,
         )
         db.session.add(new_post)
         db.session.commit()
@@ -145,7 +171,6 @@ def new():
 @post_bp.route("/<int:post_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit(post_id):
-    """投稿の編集"""
     post = Post.query.get_or_404(post_id)
     if post.author_id != current_user.id:
         abort(403)
@@ -155,6 +180,19 @@ def edit(post_id):
         post.description = request.form.get("description", post.description).strip()
         tags = request.form.get("tags", "").strip()
         post.tags = json.dumps(parse_tags(tags))
+
+        start_date_str = request.form.get("start_date", "").strip()
+        end_date_str = request.form.get("end_date", "").strip()
+
+        def parse_local_datetime(dt_str):
+            if not dt_str:
+                return None
+            local_dt = datetime.fromisoformat(dt_str)
+            return pytz.timezone("UTC").localize(local_dt)
+
+        post.start_date = parse_local_datetime(start_date_str)
+        post.end_date = parse_local_datetime(end_date_str)
+
         db.session.commit()
         return redirect(url_for("post.detail", post_id=post.id))
 
@@ -162,6 +200,8 @@ def edit(post_id):
         "title": post.title,
         "description": post.description,
         "tags": json.loads(post.tags) if post.tags else [],
+        "start_date": post.start_date,  # datetime or None
+        "end_date": post.end_date,
     }
     return render_template("post/edit_form.html", post=post_data)
 
