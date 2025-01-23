@@ -174,5 +174,18 @@
       const savedTheme = localStorage.getItem("theme") || "light";
       applyTheme(savedTheme);
     </script>
+    <style>
+      a:not([role=button]) {
+        text-decoration: none;
+        font-weight: bold;
+        background: linear-gradient(var(--bs-body-color) 0 0) 0 100% / var(--d, 0) 2px
+          no-repeat !important;
+        transition: 0.3s !important;
+      }
+      
+      a:not([role=button]):hover {
+        --d: 100%;
+      }
+    </style>
   </body>
 </html>

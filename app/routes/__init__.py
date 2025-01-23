@@ -1,6 +1,6 @@
 from flask import Flask
 
-from .admin import admin_bp
+from .admin import init_admin
 from .auth import auth_bp
 from .circle import circle_bp
 from .comment import comment_bp
@@ -14,7 +14,6 @@ __all__ = ["register_routes"]
 
 
 def register_routes(app: Flask):
-    app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(circle_bp, url_prefix="/circles")
     app.register_blueprint(comment_bp, url_prefix="/comments")
@@ -24,3 +23,5 @@ def register_routes(app: Flask):
     app.register_blueprint(user_bp, url_prefix="/users")
 
     app.register_blueprint(main_bp)
+
+    init_admin(app)
