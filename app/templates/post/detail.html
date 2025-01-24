@@ -45,7 +45,7 @@
 
   <!-- 投稿説明 -->
   {% if post.description %}
-    <p class="lead">{{ post.description }}</p>
+    <p class="lead">{{ post.description | nl2br | safe }}</p>
     <hr>
   {% endif %}
 
