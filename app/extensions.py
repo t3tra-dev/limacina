@@ -1,13 +1,28 @@
 import json
 
 from flask import Flask
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
+
+
+def user_key_func():
+    if current_user.is_authenticated:
+        return str(current_user.id)
+    return get_remote_address()
+
+
+limiter = Limiter(
+    key_func=user_key_func,
+    default_limits=["200 per day", "50 per hour"],
+)
 
 
 def init_extensions(app: Flask):

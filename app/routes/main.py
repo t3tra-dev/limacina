@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request
 from sqlalchemy import and_, or_
 
+from app.extensions import limiter
 from app.models import Post
 
 __all__ = ["main_bp"]
@@ -24,6 +25,7 @@ def terms():
 
 
 @main_bp.route("/search", methods=["GET"])
+@limiter.limit("20 per minute")
 def search():
     query_text = request.args.get("q", "").strip()
     search_type = request.args.get("type", "text").strip()

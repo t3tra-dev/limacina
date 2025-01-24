@@ -7,7 +7,7 @@ import requests
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import Event, Media, Post
 
 __all__ = ["post_bp"]
@@ -91,6 +91,7 @@ def detail(post_id):
 
 
 @post_bp.route("/new", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 @login_required
 def new():
     if request.method == "POST":
@@ -180,6 +181,7 @@ def new():
 
 @post_bp.route("/<int:post_id>/edit", methods=["GET", "POST"])
 @login_required
+@limiter.limit("5 per minute")
 def edit(post_id):
     post = Post.query.get_or_404(post_id)
     if post.author_id != current_user.id:
@@ -228,6 +230,7 @@ def edit(post_id):
 
 @post_bp.route("/<int:post_id>/delete", methods=["POST"])
 @login_required
+@limiter.limit("5 per minute")
 def delete(post_id):
     """投稿の削除"""
     post = Post.query.get_or_404(post_id)

@@ -3,7 +3,7 @@ import datetime
 from flask import Blueprint, redirect, request, url_for
 from flask_login import current_user, login_required
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import Comment, Post
 
 __all__ = ["comment_bp"]
@@ -13,6 +13,7 @@ comment_bp = Blueprint("comment", __name__)
 
 @comment_bp.route("/<int:post_id>/comments", methods=["POST"])
 @login_required
+@limiter.limit("15 per minute")
 def add_comment(post_id):
     """コメントまたは返信の投稿処理"""
     post = Post.query.get_or_404(post_id)

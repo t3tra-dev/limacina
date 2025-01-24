@@ -4,7 +4,7 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models.user import User
 
 __all__ = ["auth_bp"]
@@ -17,6 +17,7 @@ def is_valid_screen_name(screen_name: str) -> bool:
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def login():
     errors = {}
     if request.method == "POST":
@@ -40,6 +41,7 @@ def login():
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def register():
     errors = {}
     if request.method == "POST":

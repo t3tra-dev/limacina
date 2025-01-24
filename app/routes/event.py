@@ -5,7 +5,7 @@ import pytz
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import Event
 
 __all__ = ["event_bp"]
@@ -24,6 +24,7 @@ def admin_required(func):
 
 
 @event_bp.route("/", methods=["GET"])
+@limiter.limit("30 per minute")
 def index():
     events = Event.query.order_by(Event.start_date.asc()).all()
     return render_template("event/list.html", events=events)

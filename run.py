@@ -42,6 +42,10 @@ def create_app():
     def not_found(e):
         return render_template("errors/404.html"), 404
 
+    @app.errorhandler(429)
+    def too_many_requests(e):
+        return render_template("errors/429.html"), 429
+
     return app
 
 

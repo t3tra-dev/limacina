@@ -1,13 +1,14 @@
 from flask import Blueprint, abort, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import Circle, CircleMember, User
 
 circle_bp = Blueprint("circle", __name__)
 
 
 @circle_bp.route("/", methods=["GET"])
+@limiter.limit("30 per minute")
 def index():
     # サークル一覧表示(仮)
     circles = Circle.query.all()
